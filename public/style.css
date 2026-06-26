@@ -5,36 +5,165 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: Inter, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #f8f3ec;
+    background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.52) 0 18px, transparent 18px calc(100% - 18px), rgba(0, 0, 0, 0.52) calc(100% - 18px)),
+        radial-gradient(circle at 12% 18%, rgba(255, 189, 73, 0.34), transparent 28%),
+        radial-gradient(circle at 85% 10%, rgba(255, 68, 116, 0.34), transparent 26%),
+        radial-gradient(circle at 50% 92%, rgba(85, 41, 255, 0.22), transparent 34%),
+        linear-gradient(135deg, #0d0912 0%, #231423 44%, #5a1c31 100%);
     min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 18px;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            rgba(255, 239, 197, 0.72) 0 10px,
+            transparent 10px 24px
+        );
+    opacity: 0.2;
+    z-index: 0;
+}
+
+body::before {
+    left: 0;
+}
+
+body::after {
+    right: 0;
+}
+
+@keyframes marqueePulse {
+    0%, 100% {
+        opacity: 0.75;
+        filter: drop-shadow(0 0 5px rgba(255, 201, 95, 0.45));
+    }
+    50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 14px rgba(255, 201, 95, 0.8));
+    }
+}
+
+@keyframes glowSweep {
+    0% {
+        transform: translateX(-120%);
+    }
+    100% {
+        transform: translateX(120%);
+    }
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1040px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 28px 20px 36px;
+    position: relative;
+    z-index: 1;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 20px 30px;
-    border-radius: 15px;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 212, 111, 0.24) 0 10px, transparent 10px 22px),
+        linear-gradient(135deg, rgba(255, 248, 236, 0.18), rgba(255, 255, 255, 0.05));
+    padding: 26px 30px;
+    border-radius: 8px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.42), inset 0 -1px 0 rgba(255, 235, 203, 0.18);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 220, 143, 0.34);
+    position: relative;
+    overflow: hidden;
+}
+
+.header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 20% 100%, rgba(255, 220, 151, 0.26), transparent 38%),
+        radial-gradient(ellipse at 80% 100%, rgba(255, 94, 126, 0.22), transparent 38%);
+    pointer-events: none;
+}
+
+.header::after {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 230, 176, 0.34);
+    box-shadow:
+        inset 0 0 28px rgba(255, 194, 77, 0.16),
+        0 0 32px rgba(255, 194, 77, 0.14);
+    pointer-events: none;
+}
+
+.header > * {
+    position: relative;
+    z-index: 1;
+}
+
+.cinema-kicker {
+    width: fit-content;
+    margin-bottom: 10px;
+    padding: 5px 9px;
+    border: 1px solid rgba(255, 214, 143, 0.62);
+    border-radius: 6px;
+    color: #ffd79b;
+    background: rgba(20, 12, 15, 0.52);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0;
+    animation: marqueePulse 2.4s ease-in-out infinite;
 }
 
 .header h1 {
-    color: #4a5568;
-    font-size: 2rem;
+    color: #fff8ec;
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 1.12;
+    text-shadow:
+        0 2px 0 rgba(89, 27, 36, 0.6),
+        0 0 24px rgba(255, 186, 82, 0.34);
+}
+
+.header-subtitle {
+    color: #f0d2af;
+    font-size: 15px;
     font-weight: 700;
+    margin-top: 8px;
+}
+
+.reel-mark {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 224, 171, 0.5);
+    background:
+        radial-gradient(circle, rgba(255, 224, 171, 0.92) 0 6px, transparent 7px),
+        radial-gradient(circle at 50% 16%, rgba(255, 224, 171, 0.85) 0 7px, transparent 8px),
+        radial-gradient(circle at 84% 50%, rgba(255, 224, 171, 0.85) 0 7px, transparent 8px),
+        radial-gradient(circle at 50% 84%, rgba(255, 224, 171, 0.85) 0 7px, transparent 8px),
+        radial-gradient(circle at 16% 50%, rgba(255, 224, 171, 0.85) 0 7px, transparent 8px),
+        rgba(24, 16, 20, 0.58);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    flex: 0 0 auto;
+    animation: marqueePulse 3.2s ease-in-out infinite;
 }
 
 .settings-icon {
@@ -50,15 +179,16 @@ body {
 }
 
 .accordion {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 15px;
+    background: rgba(255, 250, 242, 0.95);
+    color: #22191d;
+    border-radius: 8px;
     margin-bottom: 20px;
     overflow: hidden;
     max-height: 0;
     transition: max-height 0.3s ease;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 236, 203, 0.5);
 }
 
 .accordion.open {
@@ -70,32 +200,37 @@ body {
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 8px;
-    font-weight: 600;
-    color: #4a5568;
+    font-size: 13px;
+    font-weight: 800;
+    color: #5d3c2f;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #e2e8f0;
+    padding: 13px 14px;
+    border: 1px solid #dbc7ba;
     border-radius: 8px;
     font-size: 16px;
-    transition: border-color 0.3s ease;
+    color: #241b1d;
+    background: #fffdf8;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #b85035;
+    box-shadow: 0 0 0 4px rgba(184, 80, 53, 0.14);
+    background: #fff;
 }
 
 .form-group textarea {
@@ -114,20 +249,55 @@ body {
 }
 
 .btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.24), transparent 32%, transparent 68%, rgba(255, 255, 255, 0.18)),
+        linear-gradient(135deg, #c52855 0%, #f0a12f 100%);
     color: white;
     border: none;
-    padding: 12px 24px;
+    padding: 13px 22px;
     border-radius: 8px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 900;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 12px 28px rgba(111, 35, 50, 0.28);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.btn span {
+    position: relative;
+    z-index: 1;
+}
+
+.btn:hover::before {
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.9);
+}
+
+.btn::before,
+.btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 250, 242, 0.92);
+    transform: translateY(-50%);
+}
+
+.btn::before {
+    left: -6px;
+}
+
+.btn::after {
+    right: -6px;
 }
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 18px 36px rgba(111, 35, 50, 0.38);
+    filter: saturate(1.08);
 }
 
 .btn:active {
@@ -135,22 +305,51 @@ body {
 }
 
 .quiz-container {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background:
+        radial-gradient(circle at 50% 0%, rgba(255, 218, 143, 0.26), transparent 34%),
+        linear-gradient(180deg, rgba(255, 250, 242, 0.98), rgba(255, 239, 220, 0.95));
+    color: #22191d;
+    padding: 28px;
+    border-radius: 8px;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.46);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 236, 203, 0.5);
     margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.quiz-container::before {
+    content: "";
+    position: absolute;
+    inset: 10px 10px auto;
+    height: 7px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(112, 50, 43, 0.28), transparent);
+    pointer-events: none;
+}
+
+.quiz-container::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    transform: translateX(-120%);
+    animation: glowSweep 7s ease-in-out infinite;
+    pointer-events: none;
 }
 
 .status {
     text-align: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.9);
+    padding: 13px 16px;
+    background: rgba(255, 250, 242, 0.92);
+    color: #49343a;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 800;
     margin-top: 20px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
 }
 
 .loading {
@@ -159,10 +358,11 @@ body {
     padding: 20px;
     font-size: 18px;
     font-weight: 600;
-    color: #667eea;
-    background: rgba(255, 255, 255, 0.9);
+    color: #8f2d46;
+    background: rgba(255, 250, 242, 0.96);
     border-radius: 8px;
     margin-top: 20px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
 }
 
 .loading.show {
@@ -171,15 +371,19 @@ body {
 
 @media (max-width: 768px) {
     .container {
-        padding: 10px;
+        padding: 12px;
     }
     
     .header {
-        padding: 15px 20px;
+        padding: 18px;
     }
-    
+
     .header h1 {
-        font-size: 1.5rem;
+        font-size: 28px;
+    }
+
+    .reel-mark {
+        display: none;
     }
     
     .accordion-content {
@@ -187,7 +391,7 @@ body {
     }
     
     .quiz-container {
-        padding: 20px;
+        padding: 18px;
     }
     
     .form-row {

@@ -11,12 +11,12 @@ app.use(express.static('public'));
 
 // ===== 設定 =====
 // 利用するLLMプロバイダを選択します（'openai' または 'gemini'）
-const PROVIDER = 'openai';
+const PROVIDER = process.env.LLM_PROVIDER || 'openai';
 
 // プロバイダごとに利用するモデル
 const MODELS = {
-    openai: 'gpt-5.5',        // OpenAI（デフォルト）
-    gemini: 'gemini-3.5-flash', // Google Gemini
+    openai: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    gemini: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
 };
 const MODEL = MODELS[PROVIDER];
 
@@ -30,6 +30,7 @@ try {
 
 const OPENAI_API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
+const APP_VERSION = 'movie-game-2026-06-19-debug';
 
 // public/ 内の .html 一覧を返す（index.html がこの一覧を使ってリンクを表示する）
 app.get('/api/pages', (req, res) => {
@@ -38,8 +39,28 @@ app.get('/api/pages', (req, res) => {
     res.json(files);
 });
 
+app.get('/api/health', (req, res) => {
+    res.json({
+        ok: true,
+        version: APP_VERSION,
+        provider: PROVIDER,
+        model: MODEL,
+        hasOpenAIKey: Boolean(process.env.OPENAI_API_KEY),
+        hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    });
+});
+
 // 問題数の上限（過剰なリクエストでトークンを浪費しないようにする）
 const MAX_COUNT = 20;
+const JSON_RETRY_INSTRUCTION = `
+
+重要: 直前の出力はJSON.parse()に失敗しました。
+もう一度、必ず完全なJSONオブジェクトだけを返してください。
+各文字列は短くし、reason、answerCommentary、whyRecommended は30文字以内にしてください。
+問題文は映画知識がなくても推測しやすい、分かりやすい内容にしてください。
+問題文には、その映画ならではの特徴を3つ以上入れてください。ただしタイトルや結末は書かないでください。
+配列の区切りカンマ、閉じ括弧、閉じ波括弧を必ず正しく付けてください。
+Markdown、コードフェンス、説明文は一切出力しないでください。`;
 
 app.post('/api/', async (req, res) => {
     try {
@@ -60,26 +81,45 @@ app.post('/api/', async (req, res) => {
         // prompt.md のテンプレート変数 ${key} をリクエストの値で置換する
         const finalPrompt = fillTemplate(promptTemplate, variables);
 
-        let result;
-        if (PROVIDER === 'openai') {
-            result = await callOpenAI(finalPrompt);
-        } else if (PROVIDER === 'gemini') {
-            result = await callGemini(finalPrompt);
-        } else {
-            return res.status(400).json({ error: 'Invalid provider configuration' });
+        let jsonText = await callProvider(finalPrompt);
+        let parsedData;
+        try {
+            parsedData = parseGeneratedJson(jsonText);
+        } catch (parseError) {
+            console.warn('Retrying after JSON parse failure:', parseError.message);
+            jsonText = await callProvider(finalPrompt + JSON_RETRY_INSTRUCTION);
+            parsedData = parseGeneratedJson(jsonText);
         }
 
         res.json({
             title: title,
-            data: result,
+            data: parsedData,
+            jsonText,
+            version: APP_VERSION,
         });
 
     } catch (error) {
-        // 詳細はサーバーログにのみ出力し、クライアントには汎用メッセージを返す
         console.error('API Error:', error);
-        res.status(500).json({ error: 'Failed to generate content. Please try again.' });
+        res.status(500).json({
+            error: error.message || 'Failed to generate content. Please try again.',
+            provider: PROVIDER,
+            model: MODEL,
+            version: APP_VERSION,
+        });
     }
 });
+
+async function callProvider(prompt) {
+    if (PROVIDER === 'openai') {
+        return callOpenAI(prompt);
+    }
+
+    if (PROVIDER === 'gemini') {
+        return callGemini(prompt);
+    }
+
+    throw new Error('Invalid provider configuration');
+}
 
 // prompt.md 内の ${key} を variables の値で安全に置換する
 function fillTemplate(template, variables) {
@@ -107,19 +147,18 @@ async function callOpenAI(prompt) {
             messages: [
                 { role: 'system', content: prompt }
             ],
-            max_completion_tokens: 2000,
+            max_tokens: 6000,
             response_format: { type: "json_object" }
         })
     });
 
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'OpenAI API error');
+        throw new Error(await readApiError(response, 'OpenAI API error'));
     }
 
     const data = await response.json();
     const responseText = data.choices[0].message.content;
-    return extractArray(responseText);
+    return normalizeJsonText(responseText);
 }
 
 async function callGemini(prompt) {
@@ -138,36 +177,62 @@ async function callGemini(prompt) {
                 parts: [{ text: prompt }]
             }],
             generationConfig: {
-                maxOutputTokens: 3000,
+                maxOutputTokens: 6000,
                 response_mime_type: "application/json"
             }
         })
     });
 
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'Gemini API error');
+        throw new Error(await readApiError(response, 'Gemini API error'));
     }
 
     const data = await response.json();
     const responseText = data.candidates[0].content.parts[0].text;
-    return extractArray(responseText);
+    return normalizeJsonText(responseText);
 }
 
-// LLM が返した JSON 文字列をパースし、最初に見つかった配列を取り出す
-function extractArray(responseText) {
-    let parsedData;
+// LLM が返した JSON 文字列をパースし、クライアントへ返す前に形式不正を検出する
+function parseGeneratedJson(responseText) {
     try {
-        parsedData = JSON.parse(responseText);
+        return JSON.parse(responseText);
     } catch (parseError) {
         throw new Error('Failed to parse LLM response: ' + parseError.message);
     }
+}
 
-    const arrayData = Object.values(parsedData).find(Array.isArray);
-    if (!arrayData) {
-        throw new Error('No array found in the LLM response object.');
+function normalizeJsonText(responseText) {
+    const text = String(responseText || '').trim();
+    if (!text) {
+        throw new Error('LLM response is empty');
     }
-    return arrayData;
+
+    const fencedJson = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fencedJson) {
+        return fencedJson[1].trim();
+    }
+
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        return text.slice(firstBrace, lastBrace + 1).trim();
+    }
+
+    return text;
+}
+
+async function readApiError(response, fallbackMessage) {
+    const text = await response.text();
+    if (!text) {
+        return `${fallbackMessage} (${response.status})`;
+    }
+
+    try {
+        const json = JSON.parse(text);
+        return json.error?.message || json.error || text;
+    } catch (parseError) {
+        return `${fallbackMessage} (${response.status}): ${text.slice(0, 300)}`;
+    }
 }
 
 app.listen(PORT, () => {

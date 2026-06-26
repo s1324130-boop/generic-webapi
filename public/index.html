@@ -3,26 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>アプリ一覧</title>
+    <title>Generic WebAPI Apps</title>
     <style>
-        body { font-family: sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #333; }
-        h1 { font-size: 1.4rem; }
-        ul { list-style: none; padding: 0; }
-        li { padding: 12px 0; border-bottom: 1px solid #eee; }
-        a { font-size: 1.1rem; text-decoration: none; color: #0366d6; }
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #241b1d;
+            background:
+                linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 18px, transparent 18px calc(100% - 18px), rgba(0, 0, 0, 0.18) calc(100% - 18px)),
+                radial-gradient(circle at 14% 12%, rgba(255, 188, 76, 0.34), transparent 28%),
+                radial-gradient(circle at 85% 8%, rgba(212, 45, 91, 0.26), transparent 24%),
+                linear-gradient(135deg, #fff9ed 0%, #f2dfc7 48%, #e5c0a4 100%);
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 18px;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(93, 41, 37, 0.42) 0 10px,
+                transparent 10px 24px
+            );
+            opacity: 0.22;
+        }
+
+        body::before {
+            left: 0;
+        }
+
+        body::after {
+            right: 0;
+        }
+
+        main {
+            width: min(980px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 40px 0;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+            gap: 28px;
+            align-items: stretch;
+            margin-bottom: 26px;
+        }
+
+        .intro {
+            padding: 30px;
+            border: 1px solid rgba(100, 55, 42, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 253, 248, 0.82);
+            box-shadow: 0 24px 70px rgba(89, 45, 35, 0.18);
+        }
+
+        .kicker {
+            width: fit-content;
+            margin-bottom: 12px;
+            padding: 5px 9px;
+            border: 1px solid #c48f56;
+            border-radius: 6px;
+            color: #7d332b;
+            background: #fff2d8;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 6vw, 4.7rem);
+            line-height: 0.96;
+            color: #1f171b;
+        }
+
+        .lead {
+            max-width: 560px;
+            margin: 18px 0 0;
+            color: #5f4a4d;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.8;
+        }
+
+        .movie-card {
+            display: flex;
+            min-height: 320px;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 224, 171, 0.48);
+            border-radius: 8px;
+            color: #fff8ec;
+            text-decoration: none;
+            background:
+                radial-gradient(circle at 18% 14%, rgba(255, 219, 134, 0.38), transparent 28%),
+                linear-gradient(135deg, #120d13 0%, #3b1726 50%, #aa3452 100%);
+            box-shadow: 0 28px 80px rgba(69, 22, 36, 0.36);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 34px 90px rgba(69, 22, 36, 0.45);
+        }
+
+        .movie-card-title {
+            display: block;
+            margin-top: 18px;
+            font-size: 2.15rem;
+            font-weight: 950;
+            line-height: 1.08;
+        }
+
+        .movie-card-copy {
+            display: block;
+            max-width: 360px;
+            margin-top: 12px;
+            color: #f0d5b7;
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1.7;
+        }
+
+        .movie-card-action {
+            display: inline-flex;
+            width: fit-content;
+            align-items: center;
+            gap: 8px;
+            margin-top: 22px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #2a171c;
+            background: linear-gradient(135deg, #ffd991, #f1a33c);
+            font-weight: 950;
+        }
+
+        .apps {
+            padding: 24px;
+            border: 1px solid rgba(100, 55, 42, 0.18);
+            border-radius: 8px;
+            background: rgba(255, 253, 248, 0.78);
+            box-shadow: 0 18px 48px rgba(89, 45, 35, 0.14);
+        }
+
+        .apps h2 {
+            margin: 0 0 14px;
+            font-size: 1.1rem;
+        }
+
+        ul {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        li a {
+            display: block;
+            min-height: 48px;
+            padding: 12px 14px;
+            border: 1px solid #e3c7ae;
+            border-radius: 8px;
+            color: #71302d;
+            background: #fffaf1;
+            font-weight: 800;
+            text-decoration: none;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        li a:hover {
+            border-color: #c48f56;
+            box-shadow: 0 12px 24px rgba(84, 49, 43, 0.12);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 760px) {
+            main {
+                width: min(100% - 24px, 980px);
+                padding: 18px 0;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .intro,
+            .movie-card,
+            .apps {
+                padding: 18px;
+            }
+
+            .movie-card {
+                min-height: 260px;
+            }
+
+            .movie-card-title {
+                font-size: 1.7rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>アプリ一覧</h1>
-    <ul id="appList"></ul>
+    <main>
+        <section class="hero" aria-labelledby="pageTitle">
+            <div class="intro">
+                <div class="kicker">Generic WebAPI</div>
+                <h1 id="pageTitle">アプリ一覧</h1>
+                <p class="lead">LLM API と静的フロントエンドで動くサンプルアプリです。映画推薦ゲームでは、気分や条件を入力して、選択式のゲームを進めながら今夜見る作品を絞り込めます。</p>
+            </div>
+
+            <a class="movie-card" href="quiz.html">
+                <span>
+                    <span class="kicker">Featured App</span>
+                    <span class="movie-card-title">AI映画推薦ゲーム</span>
+                    <span class="movie-card-copy">テーマ、ジャンル、避けたい要素から候補を生成し、ラウンドごとの選択でおすすめ映画とウォッチリストを作ります。</span>
+                </span>
+                <span class="movie-card-action">ゲームを開く</span>
+            </a>
+        </section>
+
+        <section class="apps" aria-labelledby="appListTitle">
+            <h2 id="appListTitle">すべてのアプリ</h2>
+            <ul id="appList"></ul>
+        </section>
+    </main>
 
     <script>
         // サーバーから .html ファイルの一覧を取得してリンクを表示する
         async function loadPages() {
-            const response = await fetch('/api/pages');
-            const files = await response.json();
-
             const list = document.getElementById('appList');
+            let files = [];
+
+            try {
+                const response = await fetch('/api/pages');
+                files = await response.json();
+            } catch (error) {
+                files = ['quiz.html'];
+            }
+
             if (files.length === 0) {
                 list.innerHTML = '<li>public/ に .html ファイルがありません。</li>';
                 return;
@@ -32,7 +264,7 @@
                 const li = document.createElement('li');
                 const a = document.createElement('a');
                 a.href = name;
-                a.textContent = name;
+                a.textContent = name === 'quiz.html' ? 'AI映画推薦ゲーム' : name;
                 li.appendChild(a);
                 list.appendChild(li);
             });

@@ -3,164 +3,559 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Quiz Generator</title>
+    <title>AI映画推薦ゲーム</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="quiz.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>ITパスポート対策クイズ</h1>
+            <div>
+                <div class="cinema-kicker">Now Screening</div>
+                <h1>AI映画推薦ゲーム</h1>
+                <p class="header-subtitle">好みを推理して、今夜の一本までたどり着く</p>
+            </div>
+            <div class="reel-mark" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
 
         <div class="quiz-container">
-            <!-- クイズ設定画面 -->
-            <div class="quiz-setup" id="quizSetup">
+            <div class="quiz-setup" id="gameSetup">
+                <div class="preset-row" id="presetRow">
+                    <button class="subtle-btn" type="button" data-preset="rainy">雨の日</button>
+                    <button class="subtle-btn" type="button" data-preset="date">会話が弾む</button>
+                    <button class="subtle-btn" type="button" data-preset="mind">考察したい</button>
+                    <button class="subtle-btn" type="button" data-preset="comfort">疲れた夜</button>
+                    <button class="subtle-btn" type="button" id="surpriseBtn">おまかせ</button>
+                </div>
+
                 <div class="form-group">
-                    <label for="quizTitle">クイズのタイトル:</label>
-                    <input type="text" id="quizTitle" placeholder="例: ITパスポート対策クイズ" value="ITパスポート対策クイズ">
+                    <label for="theme">映画のテーマ:</label>
+                    <input type="text" id="theme" placeholder="例: 雨の日に見たいミステリー" value="週末の夜に没入できる映画">
                 </div>
-                
-                <div class="form-row">
+
+                <div class="form-group">
+                    <label for="conditions">見たい気分・条件:</label>
+                    <textarea id="conditions" placeholder="例: 重すぎない、映像がきれい、最後に前向きな気分になれる">テンポが良く、会話や展開に引き込まれて、映画に詳しくなくても選びやすい分かりやすい特徴がある</textarea>
+                </div>
+
+                <div class="form-grid">
                     <div class="form-group">
-                        <label for="questionCount">問題数:</label>
-                        <input type="number" id="questionCount" min="1" max="20" value="5">
+                        <label for="region">映画の地域:</label>
+                        <select id="region">
+                            <option value="指定なし">指定なし</option>
+                            <option value="海外映画">海外映画</option>
+                            <option value="国内映画">国内映画</option>
+                        </select>
                     </div>
-                    
+
                     <div class="form-group">
-                        <button class="btn" onclick="generateQuiz()">クイズを生成</button>
+                        <label for="genre">好きなジャンル:</label>
+                        <select id="genre">
+                            <option value="指定なし">指定なし</option>
+                            <option value="ミステリー">ミステリー</option>
+                            <option value="SF">SF</option>
+                            <option value="ヒューマンドラマ">ヒューマンドラマ</option>
+                            <option value="コメディ">コメディ</option>
+                            <option value="アクション">アクション</option>
+                            <option value="アニメーション">アニメーション</option>
+                            <option value="恋愛">恋愛</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="era">時代・年代:</label>
+                        <select id="era">
+                            <option value="指定なし">指定なし</option>
+                            <option value="新しめの作品">新しめ</option>
+                            <option value="2000年代以降">2000年代以降</option>
+                            <option value="90年代以前も可">90年代以前も可</option>
+                            <option value="名作中心">名作中心</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tone">作品トーン:</label>
+                        <select id="tone">
+                            <option value="ほどよい刺激">ほどよい刺激</option>
+                            <option value="明るい">明るい</option>
+                            <option value="静かで余韻がある">静かで余韻がある</option>
+                            <option value="スリリング">スリリング</option>
+                            <option value="泣ける">泣ける</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="roundCount">ラウンド数:</label>
+                        <input type="number" id="roundCount" min="1" max="8" value="4">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="avoid">避けたい要素:</label>
+                    <input type="text" id="avoid" placeholder="例: 過度なホラー、長すぎる作品" value="残酷描写が強すぎる作品">
+                </div>
+
+                <div class="action-row">
+                    <button class="btn" id="generateBtn" type="button">ゲームを生成</button>
+                    <button class="subtle-btn" id="restoreBtn" type="button">前回の条件</button>
+                </div>
+
+                <div class="watchlist-panel top-watchlist-panel">
+                    <div class="panel-header">
+                        <h3>ウォッチリスト</h3>
+                        <button class="subtle-btn" id="copyTopWatchlistBtn" type="button">コピー</button>
+                    </div>
+                    <div class="watchlist" id="topWatchlist"></div>
+                </div>
+            </div>
+
+            <div class="quiz-playing" id="gamePlaying">
+                <div class="game-board">
+                    <div class="score-strip">
+                        <span id="gameProgress"></span>
+                        <span id="liveScore"></span>
+                        <span id="hintCount"></span>
+                    </div>
+
+                    <h2 id="gameTitleDisplay"></h2>
+                    <p class="game-summary" id="gameSummary"></p>
+
+                    <div class="round-theme" id="roundTheme"></div>
+                    <div class="question" id="currentClue"></div>
+
+                    <div class="hint-panel" id="hintPanel"></div>
+                    <button class="subtle-btn hint-btn" id="hintBtn" type="button">ヒントを見る</button>
+
+                    <ul class="selections movie-options" id="movieOptions"></ul>
+
+                    <div class="answer-feedback" id="answerFeedback"></div>
+
+                    <div class="action-row">
+                        <button class="btn" id="nextBtn" type="button" onclick="nextRound()" style="display: none;">次のラウンド</button>
+                        <button class="btn" id="finishBtn" type="button" onclick="showResults()" style="display: none;">正解映画を見る</button>
                     </div>
                 </div>
             </div>
 
-            <!-- クイズ実行画面 -->
-            <div class="quiz-playing" id="quizPlaying">
-                <div class="quiz-progress" id="quizProgress"></div>
-                <h2 id="quizTitleDisplay"></h2>
-                
-                <div class="question" id="currentQuestion"></div>
-                
-                <ul class="selections" id="selections"></ul>
-                
-                <div class="answer-feedback" id="answerFeedback"></div>
-                
-                <button class="btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">次の問題</button>
-                <button class="btn" id="finishBtn" onclick="showResults()" style="display: none;">結果を見る</button>
-            </div>
-
-            <!-- 結果画面 -->
-            <div class="quiz-results" id="quizResults">
-                <h2>クイズ結果</h2>
+            <div class="quiz-results" id="gameResults">
+                <h2>クイズの正解映画</h2>
                 <div class="score" id="finalScore"></div>
-                <button class="btn" onclick="restartQuiz()">新しいクイズを作成</button>
+                <div class="recommendations" id="recommendations"></div>
+
+                <div class="watchlist-panel">
+                    <div class="panel-header">
+                        <h3>ウォッチリスト</h3>
+                        <button class="subtle-btn" id="copyWatchlistBtn" type="button">コピー</button>
+                    </div>
+                    <div class="watchlist" id="watchlist"></div>
+                </div>
+
+                <div class="action-row">
+                    <button class="btn" type="button" onclick="restartGame()">条件を変えて遊ぶ</button>
+                    <button class="subtle-btn" type="button" onclick="generateMovieGame()">同じ条件で再生成</button>
+                </div>
             </div>
         </div>
 
         <div class="status" id="status">Ready</div>
-        <div class="loading" id="loading">クイズを生成中...</div>
+        <div class="loading" id="loading">AIが映画推薦ゲームを生成中...</div>
     </div>
 
     <script>
-        let quizData = [];
-        let currentQuestionIndex = 0;
+        const STORAGE_KEY = 'movieGameInputs';
+        const WATCHLIST_KEY = 'movieWatchlist';
+        const REQUIRED_SERVER_VERSION = 'movie-game-2026-06-19-debug';
+
+        const presets = {
+            rainy: {
+                theme: '雨の日にじっくり見たい映画',
+                conditions: 'ミステリー要素があり、映像や音楽に浸れて、見終わったあと余韻が残る',
+                region: '指定なし',
+                genre: 'ミステリー',
+                era: '2000年代以降',
+                tone: '静かで余韻がある',
+                avoid: '過度な暴力描写'
+            },
+            date: {
+                theme: '二人で見て会話が弾む映画',
+                conditions: '重すぎず、笑える場面と考えどころがあり、見終わったあと感想を話しやすい',
+                region: '海外映画',
+                genre: 'コメディ',
+                era: '新しめの作品',
+                tone: '明るい',
+                avoid: '気まずくなるほど暗い展開'
+            },
+            mind: {
+                theme: '考察したくなる映画',
+                conditions: '伏線や構成が面白く、最後に解釈を話したくなる。ネタバレなしで驚きたい',
+                region: '海外映画',
+                genre: 'SF',
+                era: '指定なし',
+                tone: 'スリリング',
+                avoid: '説明だけで進む作品'
+            },
+            comfort: {
+                theme: '疲れた夜に安心して見られる映画',
+                conditions: 'やさしく、テンポが穏やかで、見終わったあと少し元気になれる',
+                region: '国内映画',
+                genre: 'ヒューマンドラマ',
+                era: '名作中心',
+                tone: '明るい',
+                avoid: '救いのない結末'
+            }
+        };
+
+        let movieGame = null;
+        let rounds = [];
+        let currentRoundIndex = 0;
         let score = 0;
-        let selectedAnswer = null;
+        let maxScore = 0;
+        let hintsUsed = 0;
+        let usedHintThisRound = false;
         let hasAnswered = false;
 
-        // 初期化
         document.addEventListener('DOMContentLoaded', function() {
-            updateStatus();
+            updateStatus('条件を入力して映画推薦ゲームを生成できます', true);
+            bindControls();
+            loadSavedInputs(false);
+            renderWatchlist();
         });
 
-        // ステータス更新
-        function updateStatus() {
-            const statusEl = document.getElementById('status');
-            statusEl.textContent = 'Ready to generate ITパスポート quiz';
-            statusEl.style.color = '#28a745';
+        function bindControls() {
+            document.getElementById('generateBtn').addEventListener('click', generateMovieGame);
+            document.getElementById('restoreBtn').addEventListener('click', () => loadSavedInputs(true));
+            document.getElementById('surpriseBtn').addEventListener('click', applySurprise);
+            document.getElementById('hintBtn').addEventListener('click', showHint);
+            document.getElementById('copyWatchlistBtn').addEventListener('click', copyWatchlist);
+            document.getElementById('copyTopWatchlistBtn').addEventListener('click', copyWatchlist);
+
+            document.querySelectorAll('[data-preset]').forEach((button) => {
+                button.addEventListener('click', () => applyPreset(button.dataset.preset));
+            });
         }
 
-        // クイズ生成
-        async function generateQuiz() {
-            const title = document.getElementById('quizTitle').value.trim();
-            const count = parseInt(document.getElementById('questionCount').value);
+        function updateStatus(message, isReady = false) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.style.color = isReady ? '#28a745' : '#4a5568';
+        }
 
-            if (!title || count < 1) {
-                alert('すべての項目を正しく入力してください');
+        function collectInputs() {
+            return {
+                theme: document.getElementById('theme').value.trim(),
+                conditions: document.getElementById('conditions').value.trim(),
+                avoid: document.getElementById('avoid').value.trim() || '特になし',
+                region: document.getElementById('region').value,
+                genre: document.getElementById('genre').value,
+                era: document.getElementById('era').value,
+                tone: document.getElementById('tone').value,
+                count: Number.parseInt(document.getElementById('roundCount').value, 10)
+            };
+        }
+
+        function fillInputs(values) {
+            Object.entries(values).forEach(([key, value]) => {
+                const field = document.getElementById(key === 'count' ? 'roundCount' : key);
+                if (field && value !== undefined) {
+                    field.value = value;
+                }
+            });
+        }
+
+        function saveInputs(values) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+            } catch (error) {
+                console.warn('Failed to save inputs:', error);
+            }
+        }
+
+        function loadSavedInputs(showMessage) {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) {
+                    if (showMessage) updateStatus('保存された条件はまだありません');
+                    return;
+                }
+
+                fillInputs(JSON.parse(saved));
+                if (showMessage) updateStatus('前回の条件を復元しました', true);
+            } catch (error) {
+                updateStatus('保存条件の読み込みに失敗しました');
+            }
+        }
+
+        function applyPreset(name) {
+            fillInputs(presets[name]);
+            updateStatus('プリセットを入力しました', true);
+        }
+
+        function applySurprise() {
+            const names = Object.keys(presets);
+            const preset = presets[names[Math.floor(Math.random() * names.length)]];
+            const counts = [3, 4, 5, 6];
+            fillInputs({
+                ...preset,
+                count: counts[Math.floor(Math.random() * counts.length)]
+            });
+            updateStatus('おまかせ条件を入力しました', true);
+        }
+
+        async function generateMovieGame() {
+            updateStatus('生成ボタンが押されました');
+            const inputs = collectInputs();
+
+            if (!inputs.theme || !inputs.conditions || !Number.isInteger(inputs.count) || inputs.count < 1 || inputs.count > 8) {
+                alert('テーマ、条件、1〜8のラウンド数を入力してください');
                 return;
             }
 
+            saveInputs(inputs);
             document.getElementById('loading').classList.add('show');
+            document.getElementById('generateBtn').disabled = true;
+            updateStatus('AI APIへリクエスト中...');
 
             try {
+                await verifyServerVersion();
+                const controller = new AbortController();
+                const timeoutId = window.setTimeout(() => controller.abort(), 45000);
                 const response = await fetch('/api/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        title: title,
-                        count: count
-                    })
+                        title: inputs.theme,
+                        ...inputs
+                    }),
+                    signal: controller.signal
                 });
+                window.clearTimeout(timeoutId);
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'API error');
+                    const errorText = await response.text();
+                    let errorMessage = errorText || 'API error';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMessage = errorJson.error || errorMessage;
+                    } catch (parseError) {
+                        errorMessage = `HTTP ${response.status}: ${errorMessage.slice(0, 120)}`;
+                    }
+                    throw new Error(errorMessage);
                 }
 
-                const data = await response.json();
-                quizData = data.data;
+                const apiResult = await response.json();
 
-                if (!Array.isArray(quizData) || quizData.length === 0) {
-                    throw new Error('Invalid quiz data format');
-                }
+                // 要件: AIが生成したJSONデータをJSON.parse()で処理してUIを構築する
+                movieGame = normalizeMovieGame(parseApiMovieGame(apiResult, inputs.theme));
+                validateMovieGame(movieGame, inputs.count);
 
-                currentQuestionIndex = 0;
+                rounds = movieGame.rounds;
+                currentRoundIndex = 0;
                 score = 0;
-                document.getElementById('quizTitleDisplay').textContent = data.title;
-                startQuiz();
-                
+                maxScore = rounds.length * 2;
+                hintsUsed = 0;
+                usedHintThisRound = false;
+                document.getElementById('gameTitleDisplay').textContent = movieGame.gameTitle;
+                document.getElementById('gameSummary').textContent = movieGame.summary;
+                startGame();
+                updateStatus('AI生成JSONをJSON.parse()で読み込みました', true);
             } catch (error) {
                 console.error('Error:', error);
-                alert('クイズの生成に失敗しました: ' + error.message);
+                const message = error.name === 'AbortError'
+                    ? 'APIリクエストが45秒でタイムアウトしました。サーバー/APIキー/モデル設定を確認してください。'
+                    : `生成に失敗しました: ${error.message}`;
+                alert('映画推薦ゲームの生成に失敗しました: ' + message);
+                updateStatus(message);
             } finally {
                 document.getElementById('loading').classList.remove('show');
+                document.getElementById('generateBtn').disabled = false;
             }
         }
 
-        // クイズ開始
-        function startQuiz() {
-            document.getElementById('quizSetup').style.display = 'none';
-            document.getElementById('quizPlaying').style.display = 'block';
-            document.getElementById('quizResults').style.display = 'none';
-            showQuestion();
+        async function verifyServerVersion() {
+            const response = await fetch('/api/health', {
+                cache: 'no-store'
+            });
+
+            if (!response.ok) {
+                throw new Error('サーバーが古い状態です。ターミナルで Ctrl+C して npm start し直してください。');
+            }
+
+            const health = await response.json();
+            if (health.version !== REQUIRED_SERVER_VERSION) {
+                throw new Error('サーバーの再起動が必要です。ターミナルで Ctrl+C して npm start し直してください。');
+            }
         }
 
-        // 問題表示
-        function showQuestion() {
-            if (currentQuestionIndex >= quizData.length) {
+        function parseApiMovieGame(apiResult, fallbackTitle) {
+            if (typeof apiResult.jsonText === 'string' && apiResult.jsonText.trim()) {
+                return JSON.parse(apiResult.jsonText);
+            }
+
+            if (apiResult.data && !Array.isArray(apiResult.data)) {
+                return JSON.parse(JSON.stringify(apiResult.data));
+            }
+
+            if (Array.isArray(apiResult.data)) {
+                const roundsFromLegacyApi = apiResult.data;
+                return {
+                    gameTitle: fallbackTitle,
+                    summary: 'AIが生成した映画候補から、本命のおすすめを当てるゲームです。',
+                    rounds: roundsFromLegacyApi,
+                    recommendations: buildFallbackRecommendations(roundsFromLegacyApi)
+                };
+            }
+
+            throw new Error('API response does not contain generated JSON');
+        }
+
+        function normalizeMovieGame(game) {
+            game.gameTitle = game.gameTitle || 'AI映画推薦ゲーム';
+            game.summary = game.summary || '好みに合う映画を推理して、最後におすすめリストを作ります。';
+            game.rounds = Array.isArray(game.rounds) ? game.rounds : [];
+            game.recommendations = Array.isArray(game.recommendations) ? game.recommendations : [];
+            game.rounds = game.rounds.map((round, index) => ({
+                clue: round.clue || `ラウンド${index + 1}の映画を選んでください。`,
+                hint: round.hint || 'ジャンル、年代、紹介文の相性を見比べてください。',
+                roundTheme: round.roundTheme || '好み推理',
+                options: (Array.isArray(round.options) ? round.options : []).map((movie) => ({
+                    title: movie.title || 'Unknown',
+                    year: Number(movie.year) || 2000,
+                    genre: movie.genre || '映画',
+                    reason: movie.reason || '条件に近い候補です。',
+                    matchTags: Array.isArray(movie.matchTags) && movie.matchTags.length ? movie.matchTags : [movie.genre || '映画']
+                })),
+                answerIndex: Number.isInteger(Number(round.answerIndex)) ? Number(round.answerIndex) : 0,
+                answerCommentary: round.answerCommentary || '条件との相性が最も高い候補です。'
+            }));
+            game.recommendations = game.recommendations.map((movie) => ({
+                title: movie.title || 'Unknown',
+                year: Number(movie.year) || 2000,
+                genre: movie.genre || '映画',
+                whyRecommended: movie.whyRecommended || movie.reason || '今回の条件に合うおすすめです。',
+                watchMood: movie.watchMood || '今夜',
+                bestFor: movie.bestFor || '次に見る一本',
+                nextAction: movie.nextAction || '予告編や配信状況を確認'
+            }));
+            return game;
+        }
+
+        function buildFallbackRecommendations(sourceRounds) {
+            const movies = sourceRounds
+                .map((round) => round.options && round.options[round.answerIndex])
+                .filter(Boolean);
+
+            if (movies.length === 0) {
+                return [];
+            }
+
+            while (movies.length < 3) {
+                movies.push(movies[movies.length % sourceRounds.length] || movies[0]);
+            }
+
+            return movies.slice(0, 3).map((movie) => ({
+                title: movie.title,
+                year: movie.year,
+                genre: movie.genre,
+                whyRecommended: movie.reason || '入力条件に合う本命候補として選ばれました。',
+                watchMood: '条件に合う夜',
+                bestFor: '迷った時の一本',
+                nextAction: '予告編や配信状況を確認'
+            }));
+        }
+
+        function validateMovieGame(game, expectedCount) {
+            if (!game || !Array.isArray(game.rounds) || !Array.isArray(game.recommendations)) {
+                throw new Error('Invalid movie game JSON format');
+            }
+
+            if (game.rounds.length !== expectedCount) {
+                throw new Error('Generated round count does not match request');
+            }
+
+            game.rounds.forEach((round, roundIndex) => {
+                if (!round.clue || !Array.isArray(round.options) || round.options.length !== 4) {
+                    throw new Error(`Round ${roundIndex + 1} has invalid options`);
+                }
+
+                if (!Number.isInteger(round.answerIndex) || round.answerIndex < 0 || round.answerIndex > 3) {
+                    throw new Error(`Round ${roundIndex + 1} has invalid answerIndex`);
+                }
+            });
+
+            if (game.recommendations.length !== 3) {
+                throw new Error('Recommendations must contain exactly 3 movies');
+            }
+        }
+
+        function startGame() {
+            document.getElementById('gameSetup').style.display = 'none';
+            document.getElementById('gamePlaying').style.display = 'block';
+            document.getElementById('gameResults').style.display = 'none';
+            showRound();
+        }
+
+        function updateScoreStrip() {
+            document.getElementById('gameProgress').textContent =
+                `ラウンド ${currentRoundIndex + 1} / ${rounds.length}`;
+            document.getElementById('liveScore').textContent = `スコア ${score} / ${maxScore}`;
+            document.getElementById('hintCount').textContent = `ヒント ${hintsUsed}`;
+        }
+
+        function showRound() {
+            if (currentRoundIndex >= rounds.length) {
                 showResults();
                 return;
             }
 
-            const question = quizData[currentQuestionIndex];
+            const round = rounds[currentRoundIndex];
             hasAnswered = false;
-            selectedAnswer = null;
+            usedHintThisRound = false;
+            updateScoreStrip();
 
-            document.getElementById('quizProgress').textContent = 
-                `問題 ${currentQuestionIndex + 1} / ${quizData.length}`;
-            
-            document.getElementById('currentQuestion').textContent = question.question;
-            
-            const selectionsEl = document.getElementById('selections');
-            selectionsEl.innerHTML = '';
-            
-            question.selections.forEach((selection, index) => {
+            document.getElementById('roundTheme').textContent = round.roundTheme;
+            document.getElementById('currentClue').textContent = round.clue;
+            document.getElementById('hintPanel').textContent = '';
+            document.getElementById('hintPanel').classList.remove('show');
+            document.getElementById('hintBtn').style.display = 'inline-block';
+            document.getElementById('hintBtn').disabled = false;
+
+            const optionsEl = document.getElementById('movieOptions');
+            optionsEl.innerHTML = '';
+
+            round.options.forEach((movie, index) => {
                 const li = document.createElement('li');
-                li.className = 'selection-item';
-                li.textContent = selection;
-                li.onclick = () => selectAnswer(index);
-                selectionsEl.appendChild(li);
+                li.className = 'selection-item movie-option';
+                li.onclick = () => selectMovie(index);
+
+                const title = document.createElement('strong');
+                title.textContent = `${movie.title} (${movie.year})`;
+
+                const genre = document.createElement('span');
+                genre.className = 'movie-genre';
+                genre.textContent = movie.genre;
+
+                const reason = document.createElement('p');
+                reason.textContent = movie.reason;
+
+                const tags = document.createElement('div');
+                tags.className = 'tag-row';
+                movie.matchTags.slice(0, 3).forEach((tag) => {
+                    const tagEl = document.createElement('span');
+                    tagEl.textContent = tag;
+                    tags.appendChild(tagEl);
+                });
+
+                li.appendChild(title);
+                li.appendChild(genre);
+                li.appendChild(reason);
+                li.appendChild(tags);
+                optionsEl.appendChild(li);
             });
 
             document.getElementById('answerFeedback').style.display = 'none';
@@ -168,71 +563,222 @@
             document.getElementById('finishBtn').style.display = 'none';
         }
 
-        // 答え選択
-        function selectAnswer(index) {
+        function showHint() {
+            if (hasAnswered || usedHintThisRound) return;
+            const round = rounds[currentRoundIndex];
+            usedHintThisRound = true;
+            hintsUsed++;
+            const hintPanel = document.getElementById('hintPanel');
+            hintPanel.textContent = round.hint;
+            hintPanel.classList.add('show');
+            document.getElementById('hintBtn').disabled = true;
+            updateScoreStrip();
+        }
+
+        function selectMovie(index) {
             if (hasAnswered) return;
 
-            selectedAnswer = index;
             hasAnswered = true;
+            const round = rounds[currentRoundIndex];
+            const isCorrect = index === round.answerIndex;
+            const earned = isCorrect ? (usedHintThisRound ? 1 : 2) : 0;
+            score += earned;
+            updateScoreStrip();
 
-            const question = quizData[currentQuestionIndex];
-            const correctAnswer = question.answer;
-            const isCorrect = selectedAnswer === correctAnswer;
-
-            if (isCorrect) {
-                score++;
-            }
-
-            const selectionItems = document.querySelectorAll('.selection-item');
-            selectionItems.forEach((item, i) => {
+            const optionItems = document.querySelectorAll('.movie-option');
+            optionItems.forEach((item, itemIndex) => {
                 item.onclick = null;
-                if (i === correctAnswer) {
+                if (itemIndex === round.answerIndex) {
                     item.classList.add('correct');
-                } else if (i === selectedAnswer && !isCorrect) {
+                } else if (itemIndex === index && !isCorrect) {
                     item.classList.add('incorrect');
                 }
             });
 
+            document.getElementById('hintBtn').style.display = 'none';
+
             const feedback = document.getElementById('answerFeedback');
             feedback.style.display = 'block';
-            if (isCorrect) {
-                feedback.className = 'answer-feedback correct';
-                feedback.textContent = '正解！';
-            } else {
-                feedback.className = 'answer-feedback incorrect';
-                feedback.textContent = `不正解。正解は「${question.selections[correctAnswer]}」です。`;
-            }
+            feedback.className = isCorrect ? 'answer-feedback correct' : 'answer-feedback incorrect';
+            feedback.textContent = isCorrect
+                ? `正解。${earned}点獲得。${round.answerCommentary}`
+                : `今回は「${round.options[round.answerIndex].title}」が本命です。${round.answerCommentary}`;
 
-            if (currentQuestionIndex < quizData.length - 1) {
+            if (currentRoundIndex < rounds.length - 1) {
                 document.getElementById('nextBtn').style.display = 'inline-block';
             } else {
                 document.getElementById('finishBtn').style.display = 'inline-block';
             }
         }
 
-        // 次の問題
-        function nextQuestion() {
-            currentQuestionIndex++;
-            showQuestion();
+        function nextRound() {
+            currentRoundIndex++;
+            showRound();
         }
 
-        // 結果表示
         function showResults() {
-            document.getElementById('quizPlaying').style.display = 'none';
-            document.getElementById('quizResults').style.display = 'block';
-            
-            const percentage = Math.round((score / quizData.length) * 100);
-            document.getElementById('finalScore').textContent = 
-                `${score} / ${quizData.length} 問正解 (${percentage}%)`;
+            document.getElementById('gamePlaying').style.display = 'none';
+            document.getElementById('gameResults').style.display = 'block';
+
+            const percentage = Math.round((score / maxScore) * 100);
+            document.getElementById('finalScore').textContent =
+                `${score} / ${maxScore} 点 (${percentage}%)・ヒント ${hintsUsed} 回`;
+
+            const recommendationsEl = document.getElementById('recommendations');
+            recommendationsEl.innerHTML = '';
+            const correctMovies = getCorrectMovies();
+            correctMovies.forEach(({ movie, round, roundNumber }) => {
+                const card = document.createElement('article');
+                card.className = 'recommendation-card';
+
+                const title = document.createElement('h3');
+                title.textContent = `${roundNumber}. ${movie.title} (${movie.year})`;
+
+                const meta = document.createElement('div');
+                meta.className = 'recommendation-meta';
+                meta.textContent = `${movie.genre} / ${round.roundTheme}`;
+
+                const reason = document.createElement('p');
+                reason.textContent = movie.reason;
+
+                const bestFor = document.createElement('p');
+                bestFor.className = 'mini-note';
+                bestFor.textContent = round.answerCommentary;
+
+                const detailLink = document.createElement('a');
+                detailLink.className = 'subtle-btn detail-link';
+                detailLink.href = buildMovieDetailUrl(movie);
+                detailLink.target = '_blank';
+                detailLink.rel = 'noopener noreferrer';
+                detailLink.textContent = '詳細を見る';
+
+                const button = document.createElement('button');
+                button.className = 'subtle-btn';
+                button.type = 'button';
+                button.textContent = 'ウォッチリストへ';
+                button.addEventListener('click', () => addToWatchlist(movie));
+
+                card.appendChild(title);
+                card.appendChild(meta);
+                card.appendChild(reason);
+                card.appendChild(bestFor);
+                card.appendChild(detailLink);
+                card.appendChild(button);
+                recommendationsEl.appendChild(card);
+            });
+            renderWatchlist();
         }
 
-        // クイズリスタート
-        function restartQuiz() {
-            document.getElementById('quizResults').style.display = 'none';
-            document.getElementById('quizSetup').style.display = 'block';
-            quizData = [];
-            currentQuestionIndex = 0;
+        function getCorrectMovies() {
+            return rounds.map((round, index) => ({
+                round,
+                roundNumber: index + 1,
+                movie: round.options[round.answerIndex]
+            })).filter((item) => item.movie);
+        }
+
+        function buildMovieDetailUrl(movie) {
+            const query = `${movie.title} ${movie.year} 映画 詳細`;
+            return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+        }
+
+        function getWatchlist() {
+            try {
+                return JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function setWatchlist(items) {
+            try {
+                localStorage.setItem(WATCHLIST_KEY, JSON.stringify(items));
+            } catch (error) {
+                updateStatus('ウォッチリストの保存に失敗しました');
+            }
+        }
+
+        function addToWatchlist(movie) {
+            const list = getWatchlist();
+            const key = `${movie.title}-${movie.year}`;
+            if (!list.some((item) => `${item.title}-${item.year}` === key)) {
+                list.push(movie);
+                setWatchlist(list);
+            }
+            renderWatchlist();
+            updateStatus('ウォッチリストへ追加しました', true);
+        }
+
+        function renderWatchlist() {
+            const watchlistTargets = [
+                document.getElementById('watchlist'),
+                document.getElementById('topWatchlist')
+            ].filter(Boolean);
+            const list = getWatchlist();
+            watchlistTargets.forEach((watchlistEl) => {
+                watchlistEl.innerHTML = '';
+
+                if (list.length === 0) {
+                    watchlistEl.textContent = 'まだ保存された映画はありません。';
+                    return;
+                }
+
+                list.forEach((movie, index) => {
+                    const item = document.createElement('a');
+                    item.className = 'watchlist-item';
+                    item.href = buildMovieDetailUrl(movie);
+                    item.target = '_blank';
+                    item.rel = 'noopener noreferrer';
+                    item.textContent = `${movie.title} (${movie.year})`;
+
+                    const remove = document.createElement('button');
+                    remove.className = 'icon-btn';
+                    remove.type = 'button';
+                    remove.textContent = '×';
+                    remove.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const next = getWatchlist();
+                        next.splice(index, 1);
+                        setWatchlist(next);
+                        renderWatchlist();
+                    });
+
+                    item.appendChild(remove);
+                    watchlistEl.appendChild(item);
+                });
+            });
+        }
+
+        async function copyWatchlist() {
+            const list = getWatchlist();
+            if (list.length === 0) {
+                updateStatus('コピーする映画がありません');
+                return;
+            }
+
+            const text = list.map((movie) => `${movie.title} (${movie.year})`).join('\n');
+            try {
+                await navigator.clipboard.writeText(text);
+                updateStatus('ウォッチリストをコピーしました', true);
+            } catch (error) {
+                updateStatus(text);
+            }
+        }
+
+        function restartGame() {
+            document.getElementById('gameResults').style.display = 'none';
+            document.getElementById('gameSetup').style.display = 'block';
+            movieGame = null;
+            rounds = [];
+            currentRoundIndex = 0;
             score = 0;
+            maxScore = 0;
+            hintsUsed = 0;
+            usedHintThisRound = false;
+            hasAnswered = false;
+            renderWatchlist();
+            updateStatus('条件を入力して映画推薦ゲームを生成できます', true);
         }
     </script>
 </body>
